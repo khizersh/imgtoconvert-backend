@@ -7,7 +7,6 @@ import sharp from "sharp";
 const router = express.Router();
 const upload = multer(); // Multer for handling file uploads
 
-const writeFileAsync = promisify(fs.writeFile);
 // router.post("/convert", upload.single("file"), async (req, res) => {
 //   try {
 //     const { format, height, width } = req.body;
