@@ -4,7 +4,7 @@ import sharp from "sharp";
 import { createCanvas, Image } from "canvas";
 import fs from "fs";
 import { promisify } from "util";
-import puppeteer from "puppeteer";
+import { PDFDocument, rgb } from "pdf-lib";
 
 const router = express.Router();
 const upload = multer(); // Multer for handling file uploads
@@ -32,25 +32,15 @@ router.post("/convert", upload.single("file"), async (req, res) => {
       ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
       outputBuffer = Buffer.from(canvas.toBuffer("utf8"));
     } else if (format === "pdf") {
-      const browser = await puppeteer.launch({ headless: "new" });
-      const page = await browser.newPage();
-      
-      // Convert image to base64
-      const fileBase64 = fileBuffer.toString("base64");
-      const mimeType = req.file.mimetype;
+      // Convert image to PDF using pdf-lib
 
-      // Render the image inside an HTML page for Puppeteer
-      await page.setContent(`
-        <html>
-          <body style="margin:0;padding:0;display:flex;justify-content:center;align-items:center;height:100vh;">
-            <img src="data:${mimeType};base64,${fileBase64}" style="max-width:100%; max-height:100%;" />
-          </body>
-        </html>
-      `);
+      const pngBuffer = await sharp(fileBuffer).toFormat("png").toBuffer();
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([Number(width) || 600, Number(height) || 800]);
+      const image = await pdfDoc.embedPng(pngBuffer); // Works with PNG or JPEG
+      page.drawImage(image, { x: 0, y: 0, width: page.getWidth(), height: page.getHeight() });
 
-      outputBuffer = await page.pdf({ format: "A4" });
-
-      await browser.close();
+      outputBuffer = await pdfDoc.save();
     } else {
       return res.status(400).json({ error: "Invalid format. Supported: svg, pdf" });
     }
