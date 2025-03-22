@@ -1,4 +1,3 @@
-
 import express from "express";
 import multer from "multer";
 import { createCanvas, Image } from "canvas";
@@ -6,56 +5,6 @@ import sharp from "sharp";
 
 const router = express.Router();
 const upload = multer(); // Multer for handling file uploads
-
-// router.post("/convert", upload.single("file"), async (req, res) => {
-//   try {
-//     const { format, height, width } = req.body;
-//     if (!req.file) {
-//       return res.status(400).json({ error: "No file uploaded" });
-//     }
-
-//     const fileBuffer = req.file.buffer;
-//     let outputBuffer;
-
-//     if (format === "svg") {
-//       // Convert image to SVG using Canvas
-//       const img = new Image();
-//       img.src = fileBuffer;
-
-//       const canvasWidth = Number(width) || img.width;
-//       const canvasHeight = Number(height) || img.height;
-//       const canvas = createCanvas(canvasWidth, canvasHeight, "svg");
-//       const ctx = canvas.getContext("2d");
-
-//       ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
-//       outputBuffer = Buffer.from(canvas.toBuffer("utf8"));
-//     } else if (format === "pdf") {
-//       // Convert image to PDF using pdf-lib
-
-//       const pngBuffer = await sharp(fileBuffer).toFormat("png").toBuffer();
-//       const pdfDoc = await PDFDocument.create();
-//       const page = pdfDoc.addPage([Number(width) || 600, Number(height) || 800]);
-//       const image = await pdfDoc.embedPng(pngBuffer); // Works with PNG or JPEG
-//       page.drawImage(image, { x: 0, y: 0, width: page.getWidth(), height: page.getHeight() });
-
-//       outputBuffer = await pdfDoc.save();
-//     } else {
-//       return res.status(400).json({ error: "Invalid format. Supported: svg, pdf" });
-//     }
-
-//     // Convert output to Base64
-//     const base64data = outputBuffer.toString("base64");
-
-//     res.json({ data: base64data });
-//   } catch (error) {
-//     console.error("Error:", error);
-//     res.status(500).json({ message: "Something went wrong!" });
-//   }
-// });
-
-// export default router;
-
-
 
 router.post("/convert", upload.single("file"), async (req, res) => {
   try {
@@ -73,11 +22,12 @@ router.post("/convert", upload.single("file"), async (req, res) => {
 
     const canvas = createCanvas(Number(width) || img.width, Number(height) || img.height, format);
     const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0);
+    // ctx.drawImage(img, 0, 0);
+    ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, Number(width) || img.width, Number(height) || img.height);
 
-    const fileBufferSVG = canvas.toBuffer(); // Convert to SVG
+    const fileBufferSVG = canvas.toBuffer(); 
     const base64data = Buffer.from(fileBufferSVG).toString("base64");
-
+    
     res.json({ data: base64data });
 
   } catch (error) {
